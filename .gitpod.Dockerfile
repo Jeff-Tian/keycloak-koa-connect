@@ -2,7 +2,7 @@ FROM gitpod/workspace-full
 
 USER root
 
-RUN apt install docker.io -y && service docker start
+RUN apt install docker.io -y && service docker start && rm -rf /var/lib/apt/lists*
                     
 # USER gitpod
 
