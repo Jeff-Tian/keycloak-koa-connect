@@ -1,3 +1,5 @@
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/anthinkingcoder/keycloak-koa-connect) 
+
 # Keycloak Koa Adapter
    The official version is Express， so this is Koa version. See [here](https://github.com/keycloak/keycloak-nodejs-connect) for more information
 
