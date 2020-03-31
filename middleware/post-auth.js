@@ -18,8 +18,8 @@
 const URL = require('url');
 
 module.exports = function (keycloak) {
-  return async function postAuth(ctx, next) {
-    const {request, response} = ctx;
+  return async function postAuth (ctx, next) {
+    const { request, response } = ctx;
 
     if (!request.query.auth_callback) {
       await next();
@@ -42,7 +42,6 @@ module.exports = function (keycloak) {
         pathname: request.path,
         query: request.query
       };
-
 
       delete urlParts.query.code;
       delete urlParts.query.auth_callback;

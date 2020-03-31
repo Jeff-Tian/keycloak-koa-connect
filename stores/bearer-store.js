@@ -18,7 +18,7 @@
 let BearerStore = {};
 
 BearerStore.get = (ctx) => {
-  const {request} = ctx;
+  const { request } = ctx;
   let header = request.headers.authorization;
 
   if (header) {

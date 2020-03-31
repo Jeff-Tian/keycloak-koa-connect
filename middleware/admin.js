@@ -15,7 +15,7 @@
  */
 'use strict';
 
-function Admin(keycloak, url) {
+function Admin (keycloak, url) {
   this._keycloak = keycloak;
   if (url[url.length - 1] !== '/') {
     url += '/;';
@@ -27,9 +27,9 @@ Admin.prototype.getFunction = function () {
   return this._adminRequest.bind(this);
 };
 
-function adminLogout(ctx, keycloak) {
+function adminLogout (ctx, keycloak) {
   let data = '';
-  const {request, response} = ctx;
+  const { request, response } = ctx;
   request.on('data', d => {
     data += d.toString();
   });
@@ -66,9 +66,9 @@ function adminLogout(ctx, keycloak) {
   });
 }
 
-function adminNotBefore(ctx, keycloak) {
+function adminNotBefore (ctx, keycloak) {
   let data = '';
-  const {request, response} = ctx;
+  const { request, response } = ctx;
 
   request.on('data', d => {
     data += d.toString();
@@ -92,8 +92,8 @@ module.exports = function (keycloak, adminUrl) {
   let urlLogout = url + 'k_logout';
   let urlNotBefore = url + 'k_push_not_before';
 
-  return async function adminRequest(ctx, next) {
-    const {request} = ctx;
+  return async function adminRequest (ctx, next) {
+    const { request } = ctx;
     switch (request.url) {
       case urlLogout:
         adminLogout(ctx, keycloak);

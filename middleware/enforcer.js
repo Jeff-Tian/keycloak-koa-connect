@@ -15,7 +15,7 @@
  */
 'use strict';
 
-function handlePermissions(permissions, callback) {
+function handlePermissions (permissions, callback) {
   for (let i = 0; i < permissions.length; i++) {
     const expected = permissions[i].split(':');
     const resource = expected[0];
@@ -42,7 +42,7 @@ function handlePermissions(permissions, callback) {
  *
  * @constructor
  */
-function Enforcer(keycloak, config) {
+function Enforcer (keycloak, config) {
   this.keycloak = keycloak;
   this.config = config || {};
 
@@ -55,7 +55,7 @@ function Enforcer(keycloak, config) {
   }
 }
 
-Enforcer.prototype.enforce = function enforce(expectedPermissions) {
+Enforcer.prototype.enforce = function enforce (expectedPermissions) {
   const keycloak = this.keycloak;
   const config = this.config;
 
@@ -64,7 +64,7 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
   }
 
   return async function (ctx, next) {
-    const {request, response} = ctx;
+    const { request } = ctx;
     if (!expectedPermissions || expectedPermissions.length === 0) {
       await next();
       return;
@@ -80,7 +80,7 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
         authzRequest.permissions = [];
       }
 
-      let permission = {id: resource};
+      let permission = { id: resource };
 
       if (scope) {
         permission.scopes = [scope];

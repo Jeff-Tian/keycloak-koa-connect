@@ -15,15 +15,14 @@
  */
 
 var Keycloak = require('keycloak-connect');
-var koa = require('koa');
+var Koa = require('koa');
 const render = require('koa-ejs');
 var session = require('koa-session');
 var Router = require('koa-router');
 const path = require('path');
 
-var app = new koa();
+var app = new Koa();
 var router = new Router();
-
 
 // Create a session-store to be used by both the express-session
 // middleware and the keycloak middleware.
@@ -35,9 +34,8 @@ app.use(session({
   maxAge: 86400000,
   renew: false,
   store: store,
-  signed:false
+  signed: false
 }, app));
-
 
 // ejs template engine
 render(app, {
@@ -56,7 +54,7 @@ render(app, {
 
 var keycloak = new Keycloak({
   store: true
-},{
+}, {
   clientId: 'photoz-html5-client',
   serverUrl: 'http://auth.sunmaoyun.io/auth',
   realm: 'photoz',
@@ -80,7 +78,6 @@ var middlewares = keycloak.middleware({
 middlewares.forEach(function (middleware) {
   app.use(middleware);
 });
-
 
 router.get('/', async (ctx) => {
   await ctx.render('index', {
@@ -114,4 +111,3 @@ router.get('/protected/resource', keycloak.enforcer(['resource:view', 'resource:
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(8081);
-

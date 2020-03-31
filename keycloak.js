@@ -57,7 +57,7 @@ var CheckSso = require('./middleware/check-sso');
  * @return     {Keycloak}  A constructed Keycloak object.
  *
  */
-function Keycloak(config, keycloakConfig) {
+function Keycloak (config, keycloakConfig) {
   // If keycloakConfig is null, Config() will search for `keycloak.json`.
   this.config = new Config(keycloakConfig);
 
@@ -106,7 +106,7 @@ function Keycloak(config, keycloakConfig) {
  */
 Keycloak.prototype.middleware = function (options) {
   if (!options) {
-    options = {logout: '', admin: ''};
+    options = { logout: '', admin: '' };
   }
 
   options.logout = options.logout || '/logout';
@@ -318,13 +318,13 @@ Keycloak.prototype.getGrant = function (ctx) {
   if (grantData && !grantData.error) {
     var self = this;
     return this.grantManager.createGrant(JSON.stringify(grantData))
-        .then(grant => {
-          self.storeGrant(grant, ctx);
-          return grant;
-        })
-        .catch(() => {
-          return Promise.reject(new Error('Could not store grant code error'));
-        });
+      .then(grant => {
+        self.storeGrant(grant, ctx);
+        return grant;
+      })
+      .catch(() => {
+        return Promise.reject(new Error('Could not store grant code error'));
+      });
   }
   return Promise.reject(new Error('Could not obtain grant code error'));
 };
@@ -355,7 +355,6 @@ Keycloak.prototype.unstoreGrant = function (ctx) {
 };
 
 Keycloak.prototype.getGrantFromCode = function (code, ctx) {
-  const {request, response} = ctx;
   if (this.stores.length < 2) {
     // bearer-only, cannot do this;
     throw new Error('Cannot exchange code for grant in bearer-only mode');
@@ -368,22 +367,22 @@ Keycloak.prototype.getGrantFromCode = function (code, ctx) {
   }
   var self = this;
   return this.grantManager.obtainFromCode(ctx, code, sessionId)
-      .then(function (grant) {
-        self.storeGrant(grant, ctx);
-        return grant;
-      });
+    .then(function (grant) {
+      self.storeGrant(grant, ctx);
+      return grant;
+    });
 };
 
 Keycloak.prototype.checkPermissions = function (authzRequest, ctx, callback) {
   var self = this;
-  const {request} = ctx;
+  const { request } = ctx;
   return this.grantManager.checkPermissions(authzRequest, request, callback)
-      .then(function (grant) {
-        if (!authzRequest.response_mode) {
-          self.storeGrant(grant, ctx);
-        }
-        return grant;
-      });
+    .then(function (grant) {
+      if (!authzRequest.response_mode) {
+        self.storeGrant(grant, ctx);
+      }
+      return grant;
+    });
 };
 
 Keycloak.prototype.loginUrl = function (uuid, redirectUrl) {

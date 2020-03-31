@@ -89,7 +89,6 @@ GrantManager.prototype.obtainDirectly = function obtainDirectly (username, passw
  * @param {Function} callback Optional callback, if not using promises.
  */
 GrantManager.prototype.obtainFromCode = function obtainFromCode (ctx, code, sessionId, sessionHost, callback) {
-  const {request} = ctx;
   const params = {
     client_session_state: sessionId,
     client_session_host: sessionHost,

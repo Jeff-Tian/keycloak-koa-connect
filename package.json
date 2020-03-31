@@ -62,7 +62,8 @@
   },
   "semistandard": {
     "ignore": [
-      "**/keycloak*/"
+      "**/keycloak*/",
+      "example/"
     ]
   },
   "engines": {

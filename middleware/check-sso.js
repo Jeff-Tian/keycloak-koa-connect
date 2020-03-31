@@ -18,8 +18,8 @@
 const UUID = require('./../uuid');
 const URL = require('url');
 
-function forceCheckSSO(keycloak, ctx) {
-  const {request, response} = ctx;
+function forceCheckSSO (keycloak, ctx) {
+  const { request, response } = ctx;
   const host = request.hostname;
   const headerHost = request.headers.host.split(':');
   const port = headerHost[1] || '';
@@ -40,8 +40,8 @@ function forceCheckSSO(keycloak, ctx) {
 }
 
 module.exports = function (keycloak) {
-  return async function checkSso(ctx, next) {
-    const {request, response} = ctx;
+  return async function checkSso (ctx, next) {
+    const { request, response } = ctx;
     if (request.kauth && request.kauth.grant) {
       await next();
       return;

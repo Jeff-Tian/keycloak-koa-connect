@@ -16,8 +16,8 @@
 'use strict';
 
 module.exports = function (keycloak) {
-  return async function grantAttacher(ctx, next) {
-    const {request, response} = ctx;
+  return async function grantAttacher (ctx, next) {
+    const { request } = ctx;
     try {
       request.kauth.grant = await keycloak.getGrant(ctx);
       await next();
