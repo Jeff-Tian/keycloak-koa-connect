@@ -56,11 +56,11 @@ function adminLogout(ctx, keycloak) {
           keycloak.unstoreGrant(id);
           ++seen;
           if (seen === sessionIDs.length) {
-            response.body = 'ok'
+            response.body = 'ok';
           }
         });
       } else {
-        response.body = 'ok'
+        response.body = 'ok';
       }
     }
   });

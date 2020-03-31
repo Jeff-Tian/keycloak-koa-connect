@@ -17,7 +17,7 @@
 
 module.exports = function (keycloak, logoutUrl) {
   return async function logout(ctx, next) {
-    const {request, response} = ctx
+    const {request, response} = ctx;
     if (request.url !== logoutUrl) {
       await next();
       return;

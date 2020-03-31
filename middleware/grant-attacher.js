@@ -17,12 +17,12 @@
 
 module.exports = function (keycloak) {
   return async function grantAttacher(ctx, next) {
-    const {request, response} = ctx
+    const {request, response} = ctx;
     try {
       request.kauth.grant = await keycloak.getGrant(ctx);
-      await next()
+      await next();
     } catch (e) {
-      await next()
+      await next();
     }
   };
 };

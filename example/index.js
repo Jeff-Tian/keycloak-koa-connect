@@ -28,8 +28,8 @@ var router = new Router();
 // Create a session-store to be used by both the express-session
 // middleware and the keycloak middleware.
 
-var MemoryStore = require('./util/memory-store')
-var store = new MemoryStore()
+var MemoryStore = require('./util/memory-store');
+var store = new MemoryStore();
 app.use(session({
   key: 'koa:sess',
   maxAge: 86400000,

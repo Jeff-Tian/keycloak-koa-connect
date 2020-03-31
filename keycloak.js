@@ -360,8 +360,11 @@ Keycloak.prototype.getGrantFromCode = function (code, ctx) {
     // bearer-only, cannot do this;
     throw new Error('Cannot exchange code for grant in bearer-only mode');
   }
+
+  let sessionId;
+
   if (ctx.sessionOptions.key) {
-    var sessionId = ctx.cookies.get(ctx.sessionOptions.key, { encrypt: true });
+    sessionId = ctx.cookies.get(ctx.sessionOptions.key, { encrypt: true });
   }
   var self = this;
   return this.grantManager.obtainFromCode(ctx, code, sessionId)

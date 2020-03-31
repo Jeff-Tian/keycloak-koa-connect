@@ -13,55 +13,55 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-'use strict'
+'use strict';
 
-const URL = require('url')
+const URL = require('url');
 
 module.exports = function (keycloak) {
   return async function postAuth(ctx, next) {
-    const {request, response} = ctx
+    const {request, response} = ctx;
 
     if (!request.query.auth_callback) {
-      await next()
-      return
+      await next();
+      return;
     }
 
     //  During the check SSO process the Keycloak server answered the user is not logged in
     if (request.query.error === 'login_required') {
-      await next()
-      return
+      await next();
+      return;
     }
 
     if (request.query.error) {
-      return keycloak.accessDenied(ctx, next)
+      return keycloak.accessDenied(ctx, next);
     }
 
     try {
-      const grant = await keycloak.getGrantFromCode(request.query.code, ctx)
+      const grant = await keycloak.getGrantFromCode(request.query.code, ctx);
       let urlParts = {
         pathname: request.path,
         query: request.query
-      }
+      };
 
 
-      delete urlParts.query.code
-      delete urlParts.query.auth_callback
-      delete urlParts.query.state
-      delete urlParts.query.session_state
+      delete urlParts.query.code;
+      delete urlParts.query.auth_callback;
+      delete urlParts.query.state;
+      delete urlParts.query.session_state;
 
-      let cleanUrl = URL.format(urlParts)
+      let cleanUrl = URL.format(urlParts);
 
-      request.kauth.grant = grant
+      request.kauth.grant = grant;
 
       try {
-        keycloak.authenticated(ctx)
+        keycloak.authenticated(ctx);
       } catch (err) {
-        console.log(err)
+        console.log(err);
       }
-      response.redirect(cleanUrl)
+      response.redirect(cleanUrl);
     } catch (err) {
-      keycloak.accessDenied(ctx, next)
-      console.error('Could not obtain grant code: ' + err)
+      keycloak.accessDenied(ctx, next);
+      console.error('Could not obtain grant code: ' + err);
     }
-  }
-}
+  };
+};

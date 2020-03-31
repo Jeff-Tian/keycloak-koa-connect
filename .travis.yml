@@ -4,10 +4,7 @@ language: node_js
 addons:
   chrome: stable
 node_js:
-  - "6"
-  - "8"
-  - "10"
-  - "11"
+  - "12"
 
 services:
   - docker

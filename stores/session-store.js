@@ -33,7 +33,7 @@ let unstore = (ctx) => {
   delete ctx.session[SessionStore.TOKEN_KEY];
 };
 
-SessionStore.prototype.clear = unstore
+SessionStore.prototype.clear = unstore;
 
 
 SessionStore.prototype.wrap = (grant) => {
