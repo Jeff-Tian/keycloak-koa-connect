@@ -23,6 +23,7 @@ const parseClient = require('../../utils/helper').parseClient;
 const Router = require('koa-router');
 const enableDestroy = require('server-destroy');
 const hogan = require('hogan-express');
+const render = require('koa-ejs');
 
 Keycloak.prototype.redirectToLogin = function (req) {
   var apiMatcher = /^\/service\/.*/i;
@@ -58,28 +59,34 @@ function NodeApp () {
   };
 
   this.build = function (kcConfig, params) {
-    app.set('view engine', 'html');
-    app.set('views', require('path').join(__dirname, '/views'));
-    app.engine('html', hogan);
+    render(app, {
+      root: require('path').join(__dirname, '/views'),
+      layout: 'index',
+      viewExt: 'html',
+      cache: false,
+      debug: true
+    });
 
     // Create a session-store to be used by both the express-session
     // middleware and the keycloak middleware.
 
-    var memoryStore = new session.MemoryStore();
+    var MemoryStore = require('../../../example/util/memory-store');
+    var store = new MemoryStore();
 
     app.use(session({
       secret: 'mySecret',
       resave: false,
+      renew: false,
       saveUninitialized: true,
-      store: memoryStore
-    }));
+      store: store
+    }, app));
 
     // Provide the session store to the Keycloak so that sessions
     // can be invalidated from the Keycloak console callback.
     //
     // Additional configuration is read from keycloak.json file
     // installed from the Keycloak web console.
-    params = params || { store: memoryStore };
+    params = params || { store: MemoryStore };
     var keycloak = new Keycloak(params, kcConfig);
 
     // A normal un-protected public URL.
@@ -98,10 +105,14 @@ function NodeApp () {
     // root URL.  Various permutations, such as /k_logout will ultimately
     // be appended to the admin URL.
 
-    app.use(keycloak.middleware({
+    const middlewares = keycloak.middleware({
       logout: '/logout',
       admin: '/'
-    }));
+    });
+
+    middlewares.forEach(function(middleware){
+      app.use(middleware);
+    });
 
     router.get('/login', keycloak.protect(), function (ctx) {
       const { req, res } = ctx;
