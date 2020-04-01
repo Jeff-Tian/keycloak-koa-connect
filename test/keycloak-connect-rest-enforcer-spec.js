@@ -30,6 +30,7 @@ test('setup', t => {
   return realmManager.then(() => {
     return admin.createClient(app.enforcerResourceServer(), realmName)
       .then((installation) => {
+        console.log('installation = ', installation);
         return app.build(installation);
       });
   });

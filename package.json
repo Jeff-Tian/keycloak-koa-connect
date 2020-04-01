@@ -51,6 +51,8 @@
     "keycloak-admin-client": "github:bucharest-gold/keycloak-admin-client",
     "keycloak-request-token": "^0.1.0",
     "koa": "^2.7.0",
+    "koa-router": "^8.0.8",
+    "koa-session": "^5.13.1",
     "nock": "^9.0.2",
     "nyc": "^14.1.1",
     "rsa-compat": "^1.9.4",
@@ -63,7 +65,8 @@
   "semistandard": {
     "ignore": [
       "**/keycloak*/",
-      "example/"
+      "example/",
+      "test.js"
     ]
   },
   "engines": {

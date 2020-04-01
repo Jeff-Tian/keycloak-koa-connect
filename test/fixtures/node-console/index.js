@@ -16,12 +16,13 @@
 'use strict';
 
 const Keycloak = require('../../../');
+const Koa = require('koa');
 const bodyParser = require('body-parser');
-const hogan = require('hogan-express');
-const express = require('express');
-const session = require('express-session');
-const enableDestroy = require('server-destroy');
+const session = require('koa-session');
 const parseClient = require('../../utils/helper').parseClient;
+const Router = require('koa-router');
+const enableDestroy = require('server-destroy');
+const hogan = require('hogan-express');
 
 Keycloak.prototype.redirectToLogin = function (req) {
   var apiMatcher = /^\/service\/.*/i;
@@ -33,19 +34,8 @@ Keycloak.prototype.obtainDirectly = function (user, pass) {
 };
 
 function NodeApp () {
-  var app = express();
-  var server = app.listen(0);
-  enableDestroy(server);
-  this.close = function () {
-    server.close();
-  };
-  this.destroy = function () {
-    server.destroy();
-  };
-  this.port = server.address().port;
-  this.address = 'http://127.0.0.1:' + this.port;
-
-  console.log('Testing app listening at http://localhost:%s', this.port);
+  var app = new Koa();
+  const router = new Router();
 
   this.publicClient = function (app) {
     var name = app || 'public-app';
@@ -93,7 +83,8 @@ function NodeApp () {
     var keycloak = new Keycloak(params, kcConfig);
 
     // A normal un-protected public URL.
-    app.get('/', function (req, res) {
+    router.get('/', function (ctx) {
+      const { req, res } = ctx;
       var authenticated = 'Init Success (' + (req.session['keycloak-token'] ? 'Authenticated' : 'Not Authenticated') + ')';
       output(res, authenticated);
     });
@@ -112,33 +103,40 @@ function NodeApp () {
       admin: '/'
     }));
 
-    app.get('/login', keycloak.protect(), function (req, res) {
+    router.get('/login', keycloak.protect(), function (ctx) {
+      const { req, res } = ctx;
       output(res, JSON.stringify(JSON.parse(req.session['keycloak-token']), null, 4), 'Auth Success');
     });
 
-    app.get('/check-sso', keycloak.checkSso(), function (req, res) {
+    router.get('/check-sso', keycloak.checkSso(), function (ctx) {
+      const { req, res } = ctx;
       var authenticated = 'Check SSO Success (' + (req.session['keycloak-token'] ? 'Authenticated' : 'Not Authenticated') + ')';
       output(res, authenticated);
     });
 
-    app.get('/restricted', keycloak.protect('realm:admin'), function (req, res) {
+    router.get('/restricted', keycloak.protect('realm:admin'), function (ctx) {
+      const { req, res } = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
       output(res, user, 'Restricted access');
     });
 
-    app.get('/service/public', function (req, res) {
+    router.get('/service/public', function (ctx) {
+      const { res } = ctx;
       res.json({ message: 'public' });
     });
 
-    app.get('/service/secured', keycloak.protect('realm:user'), function (req, res) {
+    router.get('/service/secured', keycloak.protect('realm:user'), function (ctx) {
+      const { res } = ctx;
       res.json({ message: 'secured' });
     });
 
-    app.get('/service/admin', keycloak.protect('realm:admin'), function (req, res) {
+    router.get('/service/admin', keycloak.protect('realm:admin'), function (ctx) {
+      const { res } = ctx;
       res.json({ message: 'admin' });
     });
 
-    app.get('/service/grant', keycloak.protect(), (req, res, next) => {
+    router.get('/service/grant', keycloak.protect(), (ctx, next) => {
+      const { req, res } = ctx;
       keycloak.getGrant(req, res)
         .then(grant => {
           res.json(grant);
@@ -146,7 +144,8 @@ function NodeApp () {
         .catch(next);
     });
 
-    app.post('/service/grant', bodyParser.json(), (req, res, next) => {
+    router.post('/service/grant', bodyParser.json(), (ctx, next) => {
+      const { req, res } = ctx;
       if (!req.body.username || !req.body.password) {
         res.status(400).send('Username and password required');
       }
@@ -158,45 +157,68 @@ function NodeApp () {
         .catch(next);
     });
 
-    app.get('/protected/enforcer/resource', keycloak.enforcer('resource:view'), function (req, res) {
+    router.get('/protected/enforcer/resource', keycloak.enforcer('resource:view'), function (ctx) {
+      const { req, res } = ctx;
       res.json({ message: 'resource:view', permissions: req.permissions });
     });
 
-    app.post('/protected/enforcer/resource', keycloak.enforcer('resource:update'), function (req, res) {
+    router.post('/protected/enforcer/resource', keycloak.enforcer('resource:update'), function (ctx) {
+      const { req, res } = ctx;
       res.json({ message: 'resource:update', permissions: req.permissions });
     });
 
-    app.delete('/protected/enforcer/resource', keycloak.enforcer('resource:delete'), function (req, res) {
+    router.delete('/protected/enforcer/resource', keycloak.enforcer('resource:delete'), function (ctx) {
+      const { req, res } = ctx;
       res.json({ message: 'resource:delete', permissions: req.permissions });
     });
 
-    app.get('/protected/enforcer/resource-view-delete', keycloak.enforcer(['resource:view', 'resource:delete']), function (req, res) {
+    router.get('/protected/enforcer/resource-view-delete', keycloak.enforcer(['resource:view', 'resource:delete']), function (ctx) {
+      const { req, res } = ctx;
       res.json({ message: 'resource:delete', permissions: req.permissions });
     });
 
-    app.get('/protected/enforcer/resource-claims', keycloak.enforcer(['photo'], {
+    router.get('/protected/enforcer/resource-claims', keycloak.enforcer(['photo'], {
       claims: function (request) {
         return {
           user_agent: [request.query.user_agent]
         };
       }
-    }), function (req, res) {
+    }), function (ctx) {
+      const { req, res } = ctx;
       res.json({ message: req.query.user_agent, permissions: req.permissions });
     });
 
-    app.get('/protected/enforcer/no-permission-defined', keycloak.enforcer(), function (req, res) {
+    router.get('/protected/enforcer/no-permission-defined', keycloak.enforcer(), function (ctx) {
+      const { req, res } = ctx;
       res.json({ message: 'always grant', permissions: req.permissions });
     });
 
-    app.get('/protected/web/resource', keycloak.enforcer(['resource:view']), function (req, res) {
+    router.get('/protected/web/resource', keycloak.enforcer(['resource:view']), function (ctx) {
+      const { req, res } = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
       output(res, user, 'Granted');
     });
 
-    app.use('*', function (req, res) {
+    router.use('*', function (ctx) {
+      const { res } = ctx;
       res.send('Not found!');
     });
+
+    app.use(router.routes()).use(router.allowedMethods());
   };
+
+  var server = app.listen(0);
+  enableDestroy(server);
+  this.close = function () {
+    server.close();
+  };
+  this.destroy = function () {
+    server.destroy();
+  };
+  this.port = server.address().port;
+  this.address = 'http://127.0.0.1:' + this.port;
+
+  console.log('Testing app listening at http://localhost:%s', this.port);
 }
 
 function output (res, output, eventMessage, page) {
