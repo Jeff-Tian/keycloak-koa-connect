@@ -22,7 +22,6 @@ const session = require('koa-session');
 const parseClient = require('../../utils/helper').parseClient;
 const Router = require('koa-router');
 const enableDestroy = require('server-destroy');
-const hogan = require('hogan-express');
 const render = require('koa-ejs');
 
 Keycloak.prototype.redirectToLogin = function (req) {
@@ -39,7 +38,7 @@ function NodeApp () {
   const router = new Router();
 
   this.publicClient = function (app) {
-    var name = app || 'public-app';
+    const name = app || 'public-app';
     return parseClient('test/fixtures/templates/public-template.json', this.port, name);
   };
 
@@ -61,7 +60,7 @@ function NodeApp () {
   this.build = function (kcConfig, params) {
     render(app, {
       root: require('path').join(__dirname, '/views'),
-      layout: 'index',
+      layout: false,
       viewExt: 'html',
       cache: false,
       debug: true
@@ -89,11 +88,17 @@ function NodeApp () {
     params = params || { store: MemoryStore };
     var keycloak = new Keycloak(params, kcConfig);
 
+    router.get('/health-check', async ctx =>
+      ctx.render('index', {result: {}, event:{}})
+    );
+
     // A normal un-protected public URL.
     router.get('/', function (ctx) {
-      const { req, res } = ctx;
-      var authenticated = 'Init Success (' + (req.session['keycloak-token'] ? 'Authenticated' : 'Not Authenticated') + ')';
-      output(res, authenticated);
+      const authenticated = 'Init Success (' + (ctx.session['keycloak-token'] ?
+          'Authenticated' :
+          'Not Authenticated') + ')';
+      console.log('auth info = ', authenticated);
+      return output(ctx, authenticated);
     });
 
     // Install the Keycloak middleware.
@@ -115,20 +120,20 @@ function NodeApp () {
     });
 
     router.get('/login', keycloak.protect(), function (ctx) {
-      const { req, res } = ctx;
-      output(res, JSON.stringify(JSON.parse(req.session['keycloak-token']), null, 4), 'Auth Success');
+      const { res } = ctx;
+      return output(ctx, JSON.stringify(JSON.parse(ctx.session['keycloak-token']), null, 4), 'Auth Success');
     });
 
     router.get('/check-sso', keycloak.checkSso(), function (ctx) {
-      const { req, res } = ctx;
-      var authenticated = 'Check SSO Success (' + (req.session['keycloak-token'] ? 'Authenticated' : 'Not Authenticated') + ')';
-      output(res, authenticated);
+      const { res } = ctx;
+      var authenticated = 'Check SSO Success (' + (ctx.session['keycloak-token'] ? 'Authenticated' : 'Not Authenticated') + ')';
+      return output(ctx, authenticated);
     });
 
     router.get('/restricted', keycloak.protect('realm:admin'), function (ctx) {
       const { req, res } = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
-      output(res, user, 'Restricted access');
+      return output(ctx, user, 'Restricted access');
     });
 
     router.get('/service/public', function (ctx) {
@@ -205,12 +210,13 @@ function NodeApp () {
     });
 
     router.get('/protected/web/resource', keycloak.enforcer(['resource:view']), function (ctx) {
-      const { req, res } = ctx;
+      const { req} = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
-      output(res, user, 'Granted');
+      return output(ctx, user, 'Granted');
     });
 
     router.use('*', function (ctx) {
+      console.log('404 reached');
       const { res } = ctx;
       res.send('Not found!');
     });
@@ -232,9 +238,10 @@ function NodeApp () {
   console.log('Testing app listening at http://localhost:%s', this.port);
 }
 
-function output (res, output, eventMessage, page) {
+function output (ctx, output, eventMessage, page) {
   page = page || 'index';
-  res.render(page, {
+  console.log('rendering ...', page);
+  return ctx.render(page, {
     result: output,
     event: eventMessage
   });
