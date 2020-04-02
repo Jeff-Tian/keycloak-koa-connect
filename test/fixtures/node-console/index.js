@@ -120,42 +120,37 @@ function NodeApp () {
     });
 
     router.get('/login', keycloak.protect(), function (ctx) {
-      const { res } = ctx;
       return output(ctx, JSON.stringify(JSON.parse(ctx.session['keycloak-token']), null, 4), 'Auth Success');
     });
 
     router.get('/check-sso', keycloak.checkSso(), function (ctx) {
-      const { res } = ctx;
       var authenticated = 'Check SSO Success (' + (ctx.session['keycloak-token'] ? 'Authenticated' : 'Not Authenticated') + ')';
       return output(ctx, authenticated);
     });
 
     router.get('/restricted', keycloak.protect('realm:admin'), function (ctx) {
-      const { req, res } = ctx;
+      const { req} = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
       return output(ctx, user, 'Restricted access');
     });
 
     router.get('/service/public', function (ctx) {
-      const { res } = ctx;
-      res.json({ message: 'public' });
+      ctx.body = ({ message: 'public' });
     });
 
     router.get('/service/secured', keycloak.protect('realm:user'), function (ctx) {
-      const { res } = ctx;
-      res.json({ message: 'secured' });
+      ctx.body = ({ message: 'secured' });
     });
 
     router.get('/service/admin', keycloak.protect('realm:admin'), function (ctx) {
-      const { res } = ctx;
-      res.json({ message: 'admin' });
+      ctx.body = ({ message: 'admin' });
     });
 
     router.get('/service/grant', keycloak.protect(), (ctx, next) => {
       const { req, res } = ctx;
       keycloak.getGrant(req, res)
         .then(grant => {
-          res.json(grant);
+          ctx.body = (grant);
         })
         .catch(next);
     });
@@ -168,29 +163,29 @@ function NodeApp () {
       keycloak.obtainDirectly(req.body.username, req.body.password)
         .then(grant => {
           keycloak.storeGrant(grant, req, res);
-          res.json(grant);
+          ctx.body = (grant);
         })
         .catch(next);
     });
 
     router.get('/protected/enforcer/resource', keycloak.enforcer('resource:view'), function (ctx) {
-      const { req, res } = ctx;
-      res.json({ message: 'resource:view', permissions: req.permissions });
+      const { req} = ctx;
+      ctx.body = ({ message: 'resource:view', permissions: req.permissions });
     });
 
     router.post('/protected/enforcer/resource', keycloak.enforcer('resource:update'), function (ctx) {
-      const { req, res } = ctx;
-      res.json({ message: 'resource:update', permissions: req.permissions });
+      const { req} = ctx;
+      ctx.body = ({ message: 'resource:update', permissions: req.permissions });
     });
 
     router.delete('/protected/enforcer/resource', keycloak.enforcer('resource:delete'), function (ctx) {
-      const { req, res } = ctx;
-      res.json({ message: 'resource:delete', permissions: req.permissions });
+      const { req} = ctx;
+      ctx.body = ({ message: 'resource:delete', permissions: req.permissions });
     });
 
     router.get('/protected/enforcer/resource-view-delete', keycloak.enforcer(['resource:view', 'resource:delete']), function (ctx) {
-      const { req, res } = ctx;
-      res.json({ message: 'resource:delete', permissions: req.permissions });
+      const { req} = ctx;
+      ctx.body = ({ message: 'resource:delete', permissions: req.permissions });
     });
 
     router.get('/protected/enforcer/resource-claims', keycloak.enforcer(['photo'], {
@@ -200,13 +195,13 @@ function NodeApp () {
         };
       }
     }), function (ctx) {
-      const { req, res } = ctx;
-      res.json({ message: req.query.user_agent, permissions: req.permissions });
+      const { req} = ctx;
+      ctx.body = ({ message: req.query.user_agent, permissions: req.permissions });
     });
 
     router.get('/protected/enforcer/no-permission-defined', keycloak.enforcer(), function (ctx) {
-      const { req, res } = ctx;
-      res.json({ message: 'always grant', permissions: req.permissions });
+      const { req} = ctx;
+      ctx.body = ({ message: 'always grant', permissions: req.permissions });
     });
 
     router.get('/protected/web/resource', keycloak.enforcer(['resource:view']), function (ctx) {
