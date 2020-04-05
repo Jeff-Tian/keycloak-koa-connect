@@ -89,14 +89,14 @@ function NodeApp () {
     var keycloak = new Keycloak(params, kcConfig);
 
     router.get('/health-check', async ctx =>
-      ctx.render('index', {result: {}, event:{}})
+      ctx.render('index', { result: {}, event: {} })
     );
 
     // A normal un-protected public URL.
     router.get('/', function (ctx) {
-      const authenticated = 'Init Success (' + (ctx.session['keycloak-token'] ?
-          'Authenticated' :
-          'Not Authenticated') + ')';
+      const authenticated = 'Init Success (' + (ctx.session['keycloak-token']
+        ? 'Authenticated'
+        : 'Not Authenticated') + ')';
       console.log('auth info = ', authenticated);
       return output(ctx, authenticated);
     });
@@ -115,7 +115,7 @@ function NodeApp () {
       admin: '/'
     });
 
-    middlewares.forEach(function(middleware){
+    middlewares.forEach(function (middleware) {
       app.use(middleware);
     });
 
@@ -129,7 +129,7 @@ function NodeApp () {
     });
 
     router.get('/restricted', keycloak.protect('realm:admin'), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
       return output(ctx, user, 'Restricted access');
     });
@@ -169,22 +169,22 @@ function NodeApp () {
     });
 
     router.get('/protected/enforcer/resource', keycloak.enforcer('resource:view'), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       ctx.body = ({ message: 'resource:view', permissions: req.permissions });
     });
 
     router.post('/protected/enforcer/resource', keycloak.enforcer('resource:update'), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       ctx.body = ({ message: 'resource:update', permissions: req.permissions });
     });
 
     router.delete('/protected/enforcer/resource', keycloak.enforcer('resource:delete'), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       ctx.body = ({ message: 'resource:delete', permissions: req.permissions });
     });
 
     router.get('/protected/enforcer/resource-view-delete', keycloak.enforcer(['resource:view', 'resource:delete']), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       ctx.body = ({ message: 'resource:delete', permissions: req.permissions });
     });
 
@@ -195,17 +195,17 @@ function NodeApp () {
         };
       }
     }), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       ctx.body = ({ message: req.query.user_agent, permissions: req.permissions });
     });
 
     router.get('/protected/enforcer/no-permission-defined', keycloak.enforcer(), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       ctx.body = ({ message: 'always grant', permissions: req.permissions });
     });
 
     router.get('/protected/web/resource', keycloak.enforcer(['resource:view']), function (ctx) {
-      const { req} = ctx;
+      const { req } = ctx;
       var user = req.kauth.grant.access_token.content.preferred_username;
       return output(ctx, user, 'Granted');
     });

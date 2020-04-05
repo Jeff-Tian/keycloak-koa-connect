@@ -290,6 +290,8 @@ declare namespace KeycloakConnect {
      */
     protect(spec?: GaurdFn | string): koa.RequestHandler
 
+    checkSso(): Koa.RequestHandler
+
     /**
      * Callback made upon successful authentication of a user.
      *
