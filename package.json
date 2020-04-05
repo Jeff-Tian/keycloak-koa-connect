@@ -1,5 +1,8 @@
 {
   "name": "@jeff-tian/keycloak-koa-connect",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0-development",
   "description": "Keycloak Connect Middleware base on koa",
   "homepage": "http://keycloak.org",
