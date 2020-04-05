@@ -12,13 +12,13 @@ declare const KeycloakConnect: KeycloakConnectStatic
 export default KeycloakConnect
 
 interface KeycloakConnectStatic {
-  new (options: KeycloakConnect.KeycloakOptions, config: KeycloakConnect.KeycloakConfig): KeycloakConnect.Keycloak
+  new(options: KeycloakConnect.KeycloakOptions, config: KeycloakConnect.KeycloakConfig): KeycloakConnect.Keycloak
 }
 
 declare namespace KeycloakConnect {
 
   interface KeycloakConfig {
-    'confidential-port': string|number
+    'confidential-port': string | number
     'auth-server-url': string
     'resource': string
     'ssl-required': string
@@ -94,7 +94,7 @@ declare namespace KeycloakConnect {
      * @param {Function} callback Optional callback, if not using promises.
      * @param scopeParam
      */
-    obtainFromClientCredentials (callback?: (err: Error, grant: Grant) => void, scopeParam?: string): Promise<Grant>
+    obtainFromClientCredentials(callback?: (err: Error, grant: Grant) => void, scopeParam?: string): Promise<Grant>
 
     /**
      * Ensure that a grant is *fresh*, refreshing if required & possible.
@@ -110,7 +110,7 @@ declare namespace KeycloakConnect {
      *
      * @param {Grant} grant The grant object to ensure freshness of
      */
-    ensureFreshness (grant: Grant): Promise<Grant>
+    ensureFreshness(grant: Grant): Promise<Grant>
 
     /**
      * Perform live validation of an `access_token` against the Keycloak server.
@@ -119,13 +119,13 @@ declare namespace KeycloakConnect {
      *
      * @return {boolean} `false` if the token is invalid, or the same token if valid.
      */
-    validateAccessToken<T extends Token|string>(token: T): Promise<false|T>
+    validateAccessToken<T extends Token | string>(token: T): Promise<false | T>
 
     /**
      * Returns a user info JSON Object
      * @param {Token|String} token
      */
-    userInfo<T extends Token|string, C extends StandardClaims>(token: T): Promise<C>
+    userInfo<T extends Token | string, C extends StandardClaims>(token: T): Promise<C>
 
     /**
      * Create a `Grant` object from a string of JSON data.
@@ -138,7 +138,7 @@ declare namespace KeycloakConnect {
      * @param {String|GrantProperties} data The raw JSON string received from the Keycloak server or from a client.
      * @return {Promise} A promise reoslving a grant.
      */
-    createGrant(data: string|GrantProperties): Promise<Grant>
+    createGrant(data: string | GrantProperties): Promise<Grant>
 
     /**
      * Validate the grant and all tokens contained therein.
@@ -184,7 +184,7 @@ declare namespace KeycloakConnect {
      * If the raw string is unavailable (due to programatic construction)
      * then `undefined` is returned.
      */
-    toString(): string|undefined
+    toString(): string | undefined
 
     /**
      * Determine if this grant is expired/out-of-date.
@@ -288,7 +288,7 @@ declare namespace KeycloakConnect {
      *
      * @param {String} spec The protection spec (optional)
      */
-    protect(spec: GaurdFn|string): koa.RequestHandler
+    protect(spec?: GaurdFn | string): koa.RequestHandler
 
     /**
      * Callback made upon successful authentication of a user.
@@ -332,10 +332,10 @@ declare namespace KeycloakConnect {
      * application would prefer to render a fancy template.
      * @param {Object} ctx The app context.
      */
-    accessDenied(ctx:koa.context): void
+    accessDenied(ctx: koa.context): void
 
 
-    getGrant(ctx:koa.context): Promise<Grant>
+    getGrant(ctx: koa.context): Promise<Grant>
 
     storeGrant(grant: Grant, ctx: koa.context): Grant
 
