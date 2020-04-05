@@ -23,3 +23,12 @@ before_script:
 
 script: 
   - ./run-tests.sh
+
+jobs:
+  include:
+    - stage: release
+      nodejs: 12
+      deploy: 
+        provider: script
+        skip_cleanup: true
+        script: npx semantic-release

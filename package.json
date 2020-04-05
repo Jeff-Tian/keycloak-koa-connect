@@ -1,6 +1,6 @@
 {
-  "name": "@anthinkingcoder/keycloak-koa-connect",
-  "version": "1.0.4",
+  "name": "@jeff-tian/keycloak-koa-connect",
+  "version": "0.0.0-development",
   "description": "Keycloak Connect Middleware base on koa",
   "homepage": "http://keycloak.org",
   "main": "keycloak.js",
@@ -9,7 +9,8 @@
     "format": "semistandard",
     "test": "./run-tests.sh",
     "docs": "jsdoc --verbose -d docs -t ./node_modules/ink-docstrap/template -R README.md index.js ./middleware/*.js stores/*.js ./middleware/auth-utils/*.js",
-    "coverage": "nyc cover tape test/unit/*.js tape test/*.js"
+    "coverage": "nyc cover tape test/unit/*.js tape test/*.js",
+    "semantic-release": "semantic-release"
   },
   "keywords": [
     "sso",
@@ -61,7 +62,8 @@
     "semistandard": "^13.0.1",
     "server-destroy": "^1.0.1",
     "tape": "^4.11.0",
-    "tape-catch": "^1.0.6"
+    "tape-catch": "^1.0.6",
+    "semantic-release": "^17.0.4"
   },
   "semistandard": {
     "ignore": [
