@@ -37,5 +37,5 @@ if [[ "$1" == "group2" ]]; then
 fi
 
 if [[ -z "$1" ]]; then
-  for i in `ls test/*.js`; do run_tests ${i}; done
+  for i in `ls test/*-sepc.js`; do run_tests ${i}; done
 fi
