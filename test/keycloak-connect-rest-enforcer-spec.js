@@ -52,9 +52,9 @@ test('Should test access to protected resource and scope view.', t => {
         t.equal(response.data.permissions[0].scopes[0], 'view');
       })
       .catch(error => {
-        if(error && error.response) {
+        if (error && error.response) {
           t.fail(error.response.data);
-        }else{
+        } else {
           console.error('error = ', error);
           process.exit(1);
         }
@@ -72,9 +72,9 @@ test('Should test access to protected resource and scope view without authorizat
     return axios(opt)
       .then(_ => {})
       .catch(error => {
-        if(error && error.response) {
+        if (error && error.response) {
           t.equal(error.response.data, 'Access denied');
-        }else{
+        } else {
           console.error('error = ', error);
           process.exit(1);
         }
@@ -112,10 +112,10 @@ test('Should test no access to protected resource and scope delete.', t => {
     return axios(opt)
       .then(_ => {})
       .catch(error => {
-        if(error && error.response) {
+        if (error && error.response) {
           t.equal(error.response.data.permissions, undefined);
           t.equal(error.response.data, 'Access denied');
-        }else{
+        } else {
           console.error('error = ', error);
           process.exit(1);
         }
@@ -134,10 +134,10 @@ test('Should test no access to protected resource and scope view and delete.', t
     return axios(opt)
       .then(_ => {})
       .catch(error => {
-        if(error && error.response) {
+        if (error && error.response) {
           t.equal(error.response.data.permissions, undefined);
           t.equal(error.response.data, 'Access denied');
-        }else{
+        } else {
           console.log('error = ', error);
           process.exit(1);
         }
@@ -161,9 +161,9 @@ test('Should test access to protected resource pushing claims.', t => {
         t.equal(response.data.permissions[0].claims.user_agent[0], 'mozilla');
       })
       .catch(error => {
-        if(error && error.response){
+        if (error && error.response) {
           t.fail(error.response.data);
-        }else{
+        } else {
           console.error('error = ', error);
           process.exit(1);
         }
@@ -182,7 +182,7 @@ test('Should test no access to protected resource wrong claims.', t => {
     return axios(opt)
       .then(_ => {})
       .catch(error => {
-        if(error && error.response) {
+        if (error && error.response) {
           t.equal(error.response.data.permissions, undefined);
           t.equal(error.response.data, 'Access denied');
         } else {
@@ -207,9 +207,9 @@ test('Should test access to resources without any permission defined.', t => {
         t.equal(response.data.permissions, undefined);
       })
       .catch(error => {
-        if(error && error.response) {
+        if (error && error.response) {
           t.fail(error.response.data);
-        }else{
+        } else {
           console.error('error = ', error);
           process.exit(1);
         }
