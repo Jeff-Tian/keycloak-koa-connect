@@ -35,6 +35,10 @@ Keycloak.prototype.obtainDirectly = function (user, pass) {
 
 function NodeApp () {
   var app = new Koa();
+
+  // required for cookie signature generation
+  app.keys = ['newest secret key', 'older secret key'];
+
   const router = new Router();
 
   this.publicClient = function (app) {
