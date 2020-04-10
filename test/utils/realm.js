@@ -37,6 +37,7 @@ function createRealm (realmName) {
     return client.realms.create(parse(realmTemplate, name));
   }).catch((err) => {
     console.error('Failure: ', err);
+    process.exit(1);
   });
 }
 

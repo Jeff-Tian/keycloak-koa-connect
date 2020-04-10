@@ -90,6 +90,7 @@ function NodeApp () {
     // Additional configuration is read from keycloak.json file
     // installed from the Keycloak web console.
     params = params || { store: MemoryStore };
+    console.log('kcConfig = ', kcConfig);
     var keycloak = new Keycloak(params, kcConfig);
 
     router.get('/health-check', async ctx =>
