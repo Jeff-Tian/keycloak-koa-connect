@@ -13,26 +13,29 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-'use strict';
+'use strict'
 
-function handlePermissions (permissions, callback) {
+function handlePermissions(permissions, callback) {
+  console.log('permissions = ', permissions)
   for (let i = 0; i < permissions.length; i++) {
-    const expected = permissions[i].split(':');
-    const resource = expected[0];
-    let scope;
+    const expected = permissions[i].split(':')
+    const resource = expected[0]
+    let scope
 
     if (expected.length > 1) {
-      scope = expected[1];
+      scope = expected[1]
     }
 
-    let r = callback(resource, scope);
+    let r = callback(resource, scope)
 
     if (r === false) {
-      return r;
+      console.log('access denied!!!!~')
+      return r
     }
   }
 
-  return true;
+  console.log('access approved!!!!')
+  return true
 }
 
 /**
@@ -42,123 +45,147 @@ function handlePermissions (permissions, callback) {
  *
  * @constructor
  */
-function Enforcer (keycloak, config) {
-  this.keycloak = keycloak;
-  this.config = config || {};
+function Enforcer(keycloak, config) {
+  this.keycloak = keycloak
+  this.config = config || {}
 
   if (!this.config.response_mode) {
-    this.config.response_mode = 'permissions';
+    this.config.response_mode = 'permissions'
   }
 
   if (!this.config.resource_server_id) {
-    this.config.resource_server_id = this.keycloak.getConfig().clientId;
+    this.config.resource_server_id = this.keycloak.getConfig().clientId
   }
 }
 
-Enforcer.prototype.enforce = function enforce (expectedPermissions) {
-  const keycloak = this.keycloak;
-  const config = this.config;
+Enforcer.prototype.enforce = function enforce(expectedPermissions) {
+  const keycloak = this.keycloak
+  const config = this.config
+
+  console.log('enforcing... by...')
 
   if (typeof expectedPermissions === 'string') {
-    expectedPermissions = [expectedPermissions];
+    expectedPermissions = [expectedPermissions]
   }
 
-  return async function (ctx, next) {
-    const { request } = ctx;
+  return async function(ctx, next) {
+    console.log('inside...')
+    const { request } = ctx
     if (!expectedPermissions || expectedPermissions.length === 0) {
-      await next();
-      return;
+      await next()
+      return
     }
 
     let authzRequest = {
       audience: config.resource_server_id,
-      response_mode: config.response_mode
-    };
+      response_mode: config.response_mode,
+    }
 
-    handlePermissions(expectedPermissions, function (resource, scope) {
+    handlePermissions(expectedPermissions, function(resource, scope) {
+      console.log('handling permissions.')
       if (!authzRequest.permissions) {
-        authzRequest.permissions = [];
+        authzRequest.permissions = []
       }
 
-      let permission = { id: resource };
+      let permission = { id: resource }
 
       if (scope) {
-        permission.scopes = [scope];
+        permission.scopes = [scope]
       }
 
-      authzRequest.permissions.push(permission);
-    });
+      authzRequest.permissions.push(permission)
+    })
 
+    console.log('checking kauth = ', request.kauth)
     if (request.kauth && request.kauth.grant) {
-      if (handlePermissions(expectedPermissions, function (resource, scope) {
+      if (handlePermissions(expectedPermissions, function(resource, scope) {
         if (!request.kauth.grant.access_token.hasPermission(resource, scope)) {
-          return false;
+          return false
         }
       })) {
-        await next();
-        return;
+        await next()
+        return
       }
     }
 
+    console.log('checking claims = ', config.claims)
     if (config.claims) {
-      const claims = config.claims(request);
+      const claims = config.claims(request)
 
       if (claims) {
-        authzRequest.claim_token = Buffer.from(JSON.stringify(claims)).toString('base64');
-        authzRequest.claim_token_format = 'urn:ietf:params:oauth:token-type:jwt';
+        authzRequest.claim_token = Buffer.from(JSON.stringify(claims))
+            .toString('base64')
+        authzRequest.claim_token_format = 'urn:ietf:params:oauth:token-type:jwt'
       }
     }
 
+    console.log('checking response mode = ', config.response_mode)
     if (config.response_mode === 'permissions') {
-      return keycloak.checkPermissions(authzRequest, ctx, async function (permissions) {
-        if (handlePermissions(expectedPermissions, function (resource, scope) {
-          if (!permissions || permissions.length === 0) {
-            return false;
-          }
+      return keycloak
+          .checkPermissions(authzRequest, ctx,
+              async function(permissions) {
+                console.log('is this cllback?')
+                if (handlePermissions(expectedPermissions,
+                    function(resource, scope) {
+                      console.log('inside callback')
+                      if (!permissions || permissions.length === 0) {
+                        return false
+                      }
 
-          for (let j = 0; j < permissions.length; j++) {
-            let permission = permissions[j];
+                      for (let j = 0; j < permissions.length; j++) {
+                        let permission = permissions[j]
 
-            if (permission.rsid === resource || permission.rsname === resource) {
-              if (scope) {
-                if (permission.scopes && permission.scopes.length > 0) {
-                  if (!permission.scopes.includes(scope)) {
-                    return false;
-                  }
-                  break;
+                        if (permission.rsid === resource ||
+                            permission.rsname ===
+                            resource) {
+                          if (scope) {
+                            if (permission.scopes && permission.scopes.length >
+                                0) {
+                              if (!permission.scopes.includes(scope)) {
+                                return false
+                              }
+                              break
+                            }
+                            return false
+                          }
+                        }
+                      }
+                    })) {
+                  console.log('next = ', next)
+                  request.permissions = permissions
+                  await next()
+                  return
                 }
-                return false;
-              }
-            }
-          }
-        })) {
-          request.permissions = permissions;
-          await next();
-          return;
-        }
 
-        return keycloak.accessDenied(ctx, next);
-      }).catch(function () {
-        return keycloak.accessDenied(ctx, next);
-      });
+                return keycloak.accessDenied(ctx, next)
+              },
+          )
+          .catch(function() {
+            return keycloak.accessDenied(ctx, next)
+          })
     } else if (config.response_mode === 'token') {
-      authzRequest.response_mode = undefined;
-      return keycloak.checkPermissions(authzRequest, request).then(async function (grant) {
-        if (handlePermissions(expectedPermissions, function (resource, scope) {
-          if (!grant.access_token.hasPermission(resource, scope)) {
-            return false;
-          }
-        })) {
-          await next();
-          return;
-        }
+      authzRequest.response_mode = undefined
+      return keycloak.checkPermissions(authzRequest, request)
+          .then(async function(grant) {
+            console.log('grant = ', grant)
+            if (handlePermissions(expectedPermissions,
+                function(resource, scope) {
+                  if (!grant.access_token.hasPermission(resource, scope)) {
+                    return false
+                  }
+                })) {
+              await next()
+              return
+            }
 
-        return keycloak.accessDenied(ctx, next);
-      }).catch(function () {
-        return keycloak.accessDenied(ctx, next);
-      });
+            return keycloak.accessDenied(ctx, next)
+          })
+          .catch(function() {
+            console.log('fuck')
+            return keycloak.accessDenied(ctx, next)
+          })
     }
-  };
-};
+  }
+}
 
-module.exports = Enforcer;
+module.exports = Enforcer

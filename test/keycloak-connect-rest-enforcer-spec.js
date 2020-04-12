@@ -39,6 +39,9 @@ test('setup', t => {
 test('Should test access to protected resource and scope view.', t => {
   t.plan(4);
   return getToken({ realmName }).then((token) => {
+    console.log('token = ', token);
+    console.log('url = ', `${app.address}/protected/enforcer/resource`);
+
     const opt = {
       method: 'get',
       url: `${app.address}/protected/enforcer/resource`,
