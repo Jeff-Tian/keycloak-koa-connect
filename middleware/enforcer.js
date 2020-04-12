@@ -16,7 +16,6 @@
 'use strict'
 
 function handlePermissions(permissions, callback) {
-  console.log('permissions = ', permissions)
   for (let i = 0; i < permissions.length; i++) {
     const expected = permissions[i].split(':')
     const resource = expected[0]
@@ -29,12 +28,10 @@ function handlePermissions(permissions, callback) {
     let r = callback(resource, scope)
 
     if (r === false) {
-      console.log('access denied!!!!~')
       return r
     }
   }
 
-  console.log('access approved!!!!')
   return true
 }
 
@@ -62,14 +59,11 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
   const keycloak = this.keycloak
   const config = this.config
 
-  console.log('enforcing... by...')
-
   if (typeof expectedPermissions === 'string') {
     expectedPermissions = [expectedPermissions]
   }
 
   return async function(ctx, next) {
-    console.log('inside...')
     const { request } = ctx
     if (!expectedPermissions || expectedPermissions.length === 0) {
       await next()
@@ -96,7 +90,6 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
       authzRequest.permissions.push(permission)
     })
 
-    console.log('checking kauth = ', request.kauth)
     if (request.kauth && request.kauth.grant) {
       if (handlePermissions(expectedPermissions, function(resource, scope) {
         if (!request.kauth.grant.access_token.hasPermission(resource, scope)) {
@@ -108,7 +101,6 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
       }
     }
 
-    console.log('checking claims = ', config.claims)
     if (config.claims) {
       const claims = config.claims(request)
 
@@ -119,12 +111,10 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
       }
     }
 
-    console.log('checking response mode = ', config.response_mode)
     if (config.response_mode === 'permissions') {
-      return keycloak
+      const res = keycloak
           .checkPermissions(authzRequest, ctx,
               async function(permissions) {
-                console.log('is this cllback?')
                 if (handlePermissions(expectedPermissions,
                     function(resource, scope) {
                       console.log('inside callback')
@@ -163,6 +153,11 @@ Enforcer.prototype.enforce = function enforce(expectedPermissions) {
           .catch(function() {
             return keycloak.accessDenied(ctx, next)
           })
+
+      console.log('hahaa =', res)
+      ctx.body = 'haha' + res
+
+      return res
     } else if (config.response_mode === 'token') {
       authzRequest.response_mode = undefined
       return keycloak.checkPermissions(authzRequest, request)

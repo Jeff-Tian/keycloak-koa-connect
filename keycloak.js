@@ -300,8 +300,8 @@ Keycloak.prototype.accessDenied = function(ctx) {
   // ctx.response.body = 'Access denied';
   ctx.status = 403
   ctx.body = 'Access denied'
-  ctx.res.write('Access deinied')
-  ctx.res.end()
+  // ctx.res.write('Access deinied')
+  // ctx.res.end()
 }
 
 /*! ignore */
@@ -380,6 +380,8 @@ Keycloak.prototype.getGrantFromCode = function(code, ctx) {
 Keycloak.prototype.checkPermissions = function(authzRequest, ctx, callback) {
   var self = this
   const { request } = ctx
+
+  console.log('checking permissions...')
   return this.grantManager.checkPermissions(authzRequest, request, callback)
       .then(function(grant) {
         if (!authzRequest.response_mode) {

@@ -24,9 +24,9 @@ const Router = require('koa-router')
 const enableDestroy = require('server-destroy')
 const render = require('koa-ejs')
 
-Keycloak.prototype.redirectToLogin = function(req) {
+Keycloak.prototype.redirectToLogin = function(request) {
   var apiMatcher = /^\/service\/.*/i
-  return !apiMatcher.test(req.baseUrl)
+  return !apiMatcher.test(request.baseUrl)
 }
 
 Keycloak.prototype.obtainDirectly = function(user, pass) {
@@ -55,13 +55,15 @@ function NodeApp() {
 
   this.confidential = function(app) {
     var name = app || 'confidential-app'
-    return parseClient('test/fixtures/templates/confidential-template.json',
+    return parseClient(
+        'test/fixtures/templates/confidential-template.json',
         this.port, name)
   }
 
   this.enforcerResourceServer = function(app) {
     var name = app || 'resource-server-app'
-    return parseClient('test/fixtures/templates/resource-server-template.json',
+    return parseClient(
+        'test/fixtures/templates/resource-server-template.json',
         this.port, name)
   }
 
@@ -98,7 +100,6 @@ function NodeApp() {
     var keycloak = new Keycloak(params, kcConfig)
 
     router.get('/health-check', async ctx => {
-          // ctx.render('index', { result: {}, event: {} })
           ctx.body = 'hello, I\'m fine.'
         },
     )
@@ -144,11 +145,12 @@ function NodeApp() {
       return output(ctx, authenticated)
     })
 
-    router.get('/restricted', keycloak.protect('realm:admin'), function(ctx) {
-      const { req } = ctx
-      var user = req.kauth.grant.access_token.content.preferred_username
-      return output(ctx, user, 'Restricted access')
-    })
+    router.get('/restricted', keycloak.protect('realm:admin'),
+        function(ctx) {
+          const { request } = ctx
+          var user = request.kauth.grant.access_token.content.preferred_username
+          return output(ctx, user, 'restricted access')
+        })
 
     router.get('/service/public', function(ctx) {
       ctx.body = ({ message: 'public' })
@@ -165,8 +167,8 @@ function NodeApp() {
         })
 
     router.get('/service/grant', keycloak.protect(), (ctx, next) => {
-      const { req, res } = ctx
-      keycloak.getGrant(req, res)
+      const { request, response } = ctx
+      keycloak.getGrant(request, response)
           .then(grant => {
             ctx.body = (grant)
           })
@@ -174,102 +176,100 @@ function NodeApp() {
     })
 
     router.post('/service/grant', bodyParser.json(), (ctx, next) => {
-      const { req, res } = ctx
-      if (!req.body.username || !req.body.password) {
-        res.status(400)
-        res.write('Username and password required')
-        res.end()
+      const { request, response } = ctx
+      if (!request.body.username || !request.body.password) {
+        ctx.status = 400
+        ctx.body = ('Username and password required')
       }
-      keycloak.obtainDirectly(req.body.username, req.body.password)
+      keycloak.obtainDirectly(request.body.username, request.body.password)
           .then(grant => {
-            keycloak.storeGrant(grant, req, res)
+            keycloak.storeGrant(grant, request, response)
             ctx.body = (grant)
           })
           .catch(next)
     })
 
     router.get('/protected/enforcer/resource',
-        keycloak.enforcer('resource:view'), (ctx) => {
-          const { req, res } = ctx
-          res.write(JSON.stringify({
+        keycloak.enforcer('resource:view'), async (ctx) => {
+          const { request } = ctx
+          console.log('fffff >>>>>>>>>>>>>>>> ', request.permissions)
+          ctx.body = {
             message: 'resource:view',
-            permissions: req.permissions,
-          }))
-          res.end()
+            permissions: request.permissions,
+          }
+        })
+
+    router.get('/fuck', keycloak.enforcer('resource:view'),
+        ctx => {
+          console.log('ctx = ', ctx)
+          ctx.body = 'fuck'
         })
 
     router.post('/protected/enforcer/resource',
         keycloak.enforcer('resource:update'), function(ctx) {
-          const { req, res } = ctx
-          res.write(JSON.stringify({
+          const { request } = ctx
+          ctx.body = {
             message: 'resource:update',
-            permissions: req.permissions,
-          }))
-
-          res.end()
+            permissions: request.permissions,
+          }
         })
 
     router.delete('/protected/enforcer/resource',
         keycloak.enforcer('resource:delete'), function(ctx) {
-          const { req, res } = ctx
-          res.write(JSON.stringify(({
+          const { request } = ctx
+          ctx.body = {
             message: 'resource:delete',
-            permissions: req.permissions,
-          })))
-
-          res.end()
+            permissions: request.permissions,
+          }
         })
 
     router.get('/protected/enforcer/resource-view-delete',
-        keycloak.enforcer(['resource:view', 'resource:delete']), function(ctx) {
-          console.log('in!!!')
-          const { req, res } = ctx
-          res.write(JSON.stringify(({
+        keycloak.enforcer(['resource:view', 'resource:delete']),
+        function(ctx) {
+          const { request } = ctx
+          ctx.body = {
             message: 'resource:delete',
-            permissions: req.permissions,
-          })))
-          res.end()
+            permissions: request.permissions,
+          }
         })
 
     router.get('/protected/enforcer/resource-claims',
         keycloak.enforcer(['photo'], {
-          claims: function(request) {
+          claims: function(requestuest) {
             return {
-              user_agent: [request.query.user_agent],
+              user_agent: [requestuest.query.user_agent],
             }
           },
         }), function(ctx) {
-          const { req, res } = ctx
-          res.write(JSON.stringify(({
-            message: req.query.user_agent,
-            permissions: req.permissions,
-          })))
-          res.end()
+          const { request } = ctx
+          ctx.body = {
+            message: request.query.user_agent,
+            permissions: request.permissions,
+          }
         })
 
     router.get('/protected/enforcer/no-permission-defined', keycloak.enforcer(),
         function(ctx) {
-          const { req, res } = ctx
-          res.write(JSON.stringify({
+          const { request } = ctx
+          ctx.body = {
             message: 'always grant',
-            permissions: req.permissions,
-          }))
-
-          res.end()
+            permissions: request.permissions,
+          }
         })
 
-    router.get('/protected/web/resource', keycloak.enforcer(['resource:view']),
+    router.get('/protected/web/resource',
+        keycloak.enforcer(['resource:view']),
         function(ctx) {
-          const { req } = ctx
-          var user = req.kauth.grant.access_token.content.preferred_username
+          const { request } = ctx
+          var user = request.kauth.grant.access_token.content.preferred_username
           return output(ctx, user, 'Granted')
         })
 
     router.use('*', function(ctx) {
       console.log('404 reached')
-      const { res } = ctx
-      res.write('Not found!')
-      res.end()
+
+      ctx.status = 404
+      ctx.body = 'Not found!'
     })
 
     app.use(router.routes()).use(router.allowedMethods())
