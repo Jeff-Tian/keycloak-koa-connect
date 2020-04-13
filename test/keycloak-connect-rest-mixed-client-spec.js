@@ -119,7 +119,7 @@ test('Should store the grant.', t => {
     });
 });
 
-test('Should not store grant on bearer request', t => {
+test.skip('Should not store grant on bearer request', t => {
   t.plan(4);
   const endpoint = `${app.address}/service/grant`;
   let sessionCookie;

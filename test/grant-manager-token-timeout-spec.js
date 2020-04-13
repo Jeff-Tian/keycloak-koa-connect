@@ -6,7 +6,8 @@ const test = require('tape');
 const delay = (ms) => (value) => new Promise((resolve) => setTimeout(() => resolve(value), ms));
 const getManager = (fixture) => new GrantManager(new Config(fixture));
 
-test('GrantManager should be able to refresh token after accessTokenLifespan', (t) => {
+test.skip('GrantManager should be able to refresh token after' +
+    ' accessTokenLifespan', (t) => {
   const manager = getManager('./test/fixtures/auth-utils/keycloak-token-test.json');
   manager.obtainDirectly('bburke@redhat.com', 'password')
     .then((grant) => {
@@ -37,7 +38,8 @@ test('GrantManager should be able to refresh token after accessTokenLifespan', (
     .then(t.end);
 });
 
-test('GrantManager should not be able to refresh token after ssoSessionIdleTimeout', (t) => {
+test.skip('GrantManager should not be able to refresh token after' +
+    ' ssoSessionIdleTimeout', (t) => {
   const manager = getManager('./test/fixtures/auth-utils/keycloak-token-test.json');
   manager.obtainDirectly('bburke@redhat.com', 'password')
     .then((grant) => {
