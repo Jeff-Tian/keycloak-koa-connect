@@ -13,222 +13,222 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-'use strict'
+'use strict';
 
-const admin = require('./utils/realm')
-const NodeApp = require('./fixtures/node-console/index').NodeApp
+const admin = require('./utils/realm');
+const NodeApp = require('./fixtures/node-console/index').NodeApp;
 
-const test = require('blue-tape')
-const axios = require('axios')
-const getToken = require('./utils/token')
+const test = require('blue-tape');
+const axios = require('axios');
+const getToken = require('./utils/token');
 
-const realmName = 'policy-enforcer-realm'
-const realmManager = admin.createRealm(realmName)
-const app = new NodeApp()
+const realmName = 'policy-enforcer-realm';
+const realmManager = admin.createRealm(realmName);
+const app = new NodeApp();
 
 test('setup', t => {
   return realmManager.then(() => {
     return admin.createClient(app.enforcerResourceServer(), realmName)
-        .then((installation) => {
-          return app.build(installation)
-        })
-  })
-})
+      .then((installation) => {
+        return app.build(installation);
+      });
+  });
+});
 
 test('Should test access to protected resource and scope view.', t => {
-  t.plan(4)
+  t.plan(4);
   return getToken({ realmName }).then((token) => {
-    console.log('token = ', token)
+    console.log('token = ', token);
     const opt = {
       method: 'get',
       url: `${app.address}/protected/enforcer/resource`,
-      headers: { Authorization: `Bearer ${token}` },
-    }
+      headers: { Authorization: `Bearer ${token}` }
+    };
     return axios(opt)
-        .then(response => {
-          t.equal(response.data.message, 'resource:view')
-          t.equal(response.data.permissions.length, 1)
-          t.equal(response.data.permissions[0].rsname, 'resource')
-          t.equal(response.data.permissions[0].scopes[0], 'view')
+      .then(response => {
+        t.equal(response.data.message, 'resource:view');
+        t.equal(response.data.permissions.length, 1);
+        t.equal(response.data.permissions[0].rsname, 'resource');
+        t.equal(response.data.permissions[0].scopes[0], 'view');
+      })
+      .catch(error => {
+        if (error && error.response) {
+          t.fail(error.response.data);
+        } else {
+          console.error('error = ', error);
+          process.exit(1);
+        }
+      });
+  });
+});
+
+test(
+  'Should test access to protected resource and scope view without authorization header.',
+  t => {
+    t.plan(1);
+    return getToken({ realmName }).then((token) => {
+      const opt = {
+        method: 'get',
+        url: `${app.address}/protected/enforcer/resource`
+      };
+      return axios(opt)
+        .then(_ => {
         })
         .catch(error => {
           if (error && error.response) {
-            t.fail(error.response.data)
+            t.equal(error.response.data, 'Access denied');
           } else {
-            console.error('error = ', error)
-            process.exit(1)
+            console.error('error = ', error);
+            process.exit(1);
           }
-        })
-  })
-})
+        });
+    });
+  });
 
 test(
-    'Should test access to protected resource and scope view without authorization header.',
-    t => {
-      t.plan(1)
-      return getToken({ realmName }).then((token) => {
-        const opt = {
-          method: 'get',
-          url: `${app.address}/protected/enforcer/resource`,
-        }
-        return axios(opt)
-            .then(_ => {
-            })
-            .catch(error => {
-              if (error && error.response) {
-                t.equal(error.response.data, 'Access denied')
-              } else {
-                console.error('error = ', error)
-                process.exit(1)
-              }
-            })
-      })
-    })
-
-test(
-    'Should test access to protected resource and scope update - and returned permissions.',
-    t => {
-      t.plan(4)
-      return getToken({ realmName }).then((token) => {
-        const opt = {
-          method: 'post',
-          url: `${app.address}/protected/enforcer/resource`,
-          headers: { Authorization: `Bearer ${token}` },
-        }
-        return axios(opt)
-            .then(response => {
-              t.equal(response.data.message, 'resource:update')
-              t.equal(response.data.permissions.length, 1)
-              t.equal(response.data.permissions[0].rsname, 'resource')
-              t.equal(response.data.permissions[0].scopes[0], 'update')
-            })
-      })
-    })
+  'Should test access to protected resource and scope update - and returned permissions.',
+  t => {
+    t.plan(4);
+    return getToken({ realmName }).then((token) => {
+      const opt = {
+        method: 'post',
+        url: `${app.address}/protected/enforcer/resource`,
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      return axios(opt)
+        .then(response => {
+          t.equal(response.data.message, 'resource:update');
+          t.equal(response.data.permissions.length, 1);
+          t.equal(response.data.permissions[0].rsname, 'resource');
+          t.equal(response.data.permissions[0].scopes[0], 'update');
+        });
+    });
+  });
 
 test('Should test no access to protected resource and scope delete.', t => {
-  t.plan(2)
+  t.plan(2);
   return getToken({ realmName }).then((token) => {
     const opt = {
       method: 'delete',
       url: `${app.address}/protected/enforcer/resource`,
-      headers: { Authorization: `Bearer ${token}` },
-    }
+      headers: { Authorization: `Bearer ${token}` }
+    };
 
     return axios(opt)
+      .then(_ => {
+      })
+      .catch(error => {
+        if (error && error.response) {
+          t.equal(error.response.data.permissions, undefined);
+          t.equal(error.response.data, 'Access denied');
+        } else {
+          console.error('error = ', error);
+          process.exit(1);
+        }
+      });
+  });
+});
+
+test('Should test no access to protected resource and scope view and delete.',
+  t => {
+    t.plan(2);
+    return getToken({ realmName }).then((token) => {
+      const opt = {
+        method: 'get',
+        url: `${app.address}/protected/enforcer/resource-view-delete`,
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      return axios(opt)
         .then(_ => {
         })
         .catch(error => {
           if (error && error.response) {
-            t.equal(error.response.data.permissions, undefined)
-            t.equal(error.response.data, 'Access denied')
+            t.equal(error.response.data.permissions, undefined);
+            t.equal(error.response.data, 'Access denied');
           } else {
-            console.error('error = ', error)
-            process.exit(1)
+            console.log('error = ', error);
+            process.exit(1);
           }
-        })
-  })
-})
-
-test('Should test no access to protected resource and scope view and delete.',
-    t => {
-      t.plan(2)
-      return getToken({ realmName }).then((token) => {
-        const opt = {
-          method: 'get',
-          url: `${app.address}/protected/enforcer/resource-view-delete`,
-          headers: { Authorization: `Bearer ${token}` },
-        }
-        return axios(opt)
-            .then(_ => {
-            })
-            .catch(error => {
-              if (error && error.response) {
-                t.equal(error.response.data.permissions, undefined)
-                t.equal(error.response.data, 'Access denied')
-              } else {
-                console.log('error = ', error)
-                process.exit(1)
-              }
-            })
-      })
-    })
+        });
+    });
+  });
 
 test('Should test access to protected resource pushing claims.', t => {
-  t.plan(4)
+  t.plan(4);
   return getToken({ realmName }).then((token) => {
     const opt = {
       method: 'get',
       url: `${app.address}/protected/enforcer/resource-claims?user_agent=mozilla`,
-      headers: { Authorization: `Bearer ${token}` },
-    }
+      headers: { Authorization: `Bearer ${token}` }
+    };
     return axios(opt)
-        .then(response => {
-          t.equal(response.data.message, 'mozilla')
-          t.equal(response.data.permissions[0].rsname, 'photo')
-          t.equal(response.data.permissions[0].claims.user_agent.length, 1)
-          t.equal(response.data.permissions[0].claims.user_agent[0], 'mozilla')
-        })
-        .catch(error => {
-          if (error && error.response) {
-            t.fail(error.response.data)
-          } else {
-            console.error('error = ', error)
-            process.exit(1)
-          }
-        })
-  })
-})
+      .then(response => {
+        t.equal(response.data.message, 'mozilla');
+        t.equal(response.data.permissions[0].rsname, 'photo');
+        t.equal(response.data.permissions[0].claims.user_agent.length, 1);
+        t.equal(response.data.permissions[0].claims.user_agent[0], 'mozilla');
+      })
+      .catch(error => {
+        if (error && error.response) {
+          t.fail(error.response.data);
+        } else {
+          console.error('error = ', error);
+          process.exit(1);
+        }
+      });
+  });
+});
 
 test('Should test no access to protected resource wrong claims.', t => {
-  t.plan(2)
+  t.plan(2);
   return getToken({ realmName }).then((token) => {
     const opt = {
       method: 'get',
       url: `${app.address}/protected/enforcer/resource-claims?user_agent=ie`,
-      headers: { Authorization: `Bearer ${token}` },
-    }
+      headers: { Authorization: `Bearer ${token}` }
+    };
     return axios(opt)
-        .then(_ => {
-        })
-        .catch(error => {
-          if (error && error.response) {
-            t.equal(error.response.data.permissions, undefined)
-            t.equal(error.response.data, 'Access denied')
-          } else {
-            console.error('error = ', error)
-            process.exit(1)
-          }
-        })
-  })
-})
+      .then(_ => {
+      })
+      .catch(error => {
+        if (error && error.response) {
+          t.equal(error.response.data.permissions, undefined);
+          t.equal(error.response.data, 'Access denied');
+        } else {
+          console.error('error = ', error);
+          process.exit(1);
+        }
+      });
+  });
+});
 
 test('Should test access to resources without any permission defined.', t => {
-  t.plan(2)
+  t.plan(2);
   return getToken({ realmName }).then((token) => {
     const opt = {
       method: 'get',
       url: `${app.address}/protected/enforcer/no-permission-defined`,
-      headers: { Authorization: `Bearer ${token}` },
-    }
+      headers: { Authorization: `Bearer ${token}` }
+    };
     return axios(opt)
-        .then(response => {
-          t.equal(response.data.message, 'always grant')
-          t.equal(response.data.permissions, undefined)
-        })
-        .catch(error => {
-          if (error && error.response) {
-            t.fail(error.response.data)
-          } else {
-            console.error('error = ', error)
-            process.exit(1)
-          }
-        })
-  })
-})
+      .then(response => {
+        t.equal(response.data.message, 'always grant');
+        t.equal(response.data.permissions, undefined);
+      })
+      .catch(error => {
+        if (error && error.response) {
+          t.fail(error.response.data);
+        } else {
+          console.error('error = ', error);
+          process.exit(1);
+        }
+      });
+  });
+});
 
 test('teardown', t => {
   return realmManager.then((realm) => {
-    app.destroy()
-    admin.destroy(realmName)
-  })
-})
+    app.destroy();
+    admin.destroy(realmName);
+  });
+});
