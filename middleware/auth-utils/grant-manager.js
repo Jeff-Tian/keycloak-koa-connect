@@ -360,11 +360,9 @@ GrantManager.prototype.createGrant = function createGrant (rawData) {
   if (typeof rawData !== 'object') grantData = JSON.parse(grantData);
 
   const grant = new Grant({
-    access_token: (grantData.access_token
-      ? new Token(grantData.access_token, this.clientId)
+    access_token: (grantData.access_token ? new Token(grantData.access_token, this.clientId)
       : undefined),
-    refresh_token: (grantData.refresh_token
-      ? new Token(grantData.refresh_token)
+    refresh_token: (grantData.refresh_token ? new Token(grantData.refresh_token)
       : undefined),
     id_token: (grantData.id_token ? new Token(grantData.id_token) : undefined),
     expires_in: grantData.expires_in,
@@ -532,8 +530,7 @@ const postOptions = (manager, path) => {
 
 const fetch = (manager, handler, options, params) => {
   return new Promise((resolve, reject) => {
-    const data = (typeof params === 'string'
-      ? params
+    const data = (typeof params === 'string' ? params
       : querystring.stringify(params));
     options.headers['Content-Length'] = data.length;
 
