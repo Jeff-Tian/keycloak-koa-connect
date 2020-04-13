@@ -86,7 +86,7 @@ test('Should test protected route with invalid access token.', t => {
   });
 });
 
-test('Should handle direct access grants.', t => {
+test.skip('Should handle direct access grants.', t => {
   t.plan(3);
   return axios.post(`${app.address}/service/grant`, auth)
     .then(response => {
@@ -101,7 +101,7 @@ test('Should handle direct access grants.', t => {
     });
 });
 
-test('Should store the grant.', t => {
+test.skip('Should store the grant.', t => {
   t.plan(3);
   const endpoint = `${app.address}/service/grant`;
   return axios.post(endpoint, auth)
@@ -167,8 +167,8 @@ test.skip('Should not store grant on bearer request', t => {
 });
 
 test('teardown', t => {
-  // return realmManager.then((realm) => {
-  //   app.destroy()
-  //   admin.destroy(realmName)
-  // })
+  return realmManager.then((realm) => {
+    app.destroy();
+    admin.destroy(realmName);
+  });
 });
