@@ -17,7 +17,7 @@
 
 const Keycloak = require('../../../');
 const Koa = require('koa');
-const bodyParser = require('body-parser');
+const bodyParser = require('koa-bodyparser');
 const session = require('koa-session');
 const parseClient = require('../../utils/helper').parseClient;
 const Router = require('koa-router');
@@ -35,6 +35,7 @@ Keycloak.prototype.obtainDirectly = function (user, pass) {
 
 function NodeApp () {
   var app = new Koa();
+  app.use(bodyParser());
 
   // required for cookie signature generation
   app.keys = ['newest secret key', 'older secret key'];
@@ -175,34 +176,31 @@ function NodeApp () {
         .catch(next);
     });
 
-    router.post('/service/grant', bodyParser.json(), (ctx, next) => {
-      const { request, response } = ctx;
+    router.post('/service/grant', (ctx, next) => {
+      const { request } = ctx;
       if (!request.body.username || !request.body.password) {
         ctx.status = 400;
         ctx.body = ('Username and password required');
       }
       keycloak.obtainDirectly(request.body.username, request.body.password)
         .then(grant => {
-          keycloak.storeGrant(grant, request, response);
+          console.log('granted!!!! ');
+          keycloak.storeGrant(grant, ctx);
           ctx.body = (grant);
         })
-        .catch(next);
+        .catch(err => {
+          console.error('err ---> ', err);
+          next(err);
+        });
     });
 
     router.get('/protected/enforcer/resource',
       keycloak.enforcer('resource:view'), async (ctx) => {
         const { request } = ctx;
-        console.log('fffff >>>>>>>>>>>>>>>> ', request.permissions);
         ctx.body = {
           message: 'resource:view',
           permissions: request.permissions
         };
-      });
-
-    router.get('/fuck', keycloak.enforcer('resource:view'),
-      ctx => {
-        console.log('ctx = ', ctx);
-        ctx.body = 'fuck';
       });
 
     router.post('/protected/enforcer/resource',

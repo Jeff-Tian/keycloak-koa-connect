@@ -23,7 +23,9 @@ const axios = require('axios');
 const getToken = require('./utils/token');
 
 const realmName = 'mixed-mode-realm';
-const realmManager = admin.createRealm(realmName);
+const realmManager = admin.createRealm(realmName).then((res) => {
+  console.log('created realm: ', res);
+});
 const app = new NodeApp();
 
 const auth = {
@@ -31,7 +33,8 @@ const auth = {
   password: 'password'
 };
 
-const getSessionCookie = response => response.headers['set-cookie'][0].split(';')[0];
+const getSessionCookie = response => response.headers['set-cookie'][0].split(
+  ';')[0];
 
 test('setup', t => {
   return realmManager.then(() => {
@@ -47,7 +50,8 @@ test('Should test protected route.', t => {
   const opt = {
     url: `${app.address}/service/admin`
   };
-  return t.shouldFail(axios(opt), 'Access denied', 'Response should be access denied for no credentials');
+  return t.shouldFail(axios(opt), 'Access denied',
+    'Response should be access denied for no credentials');
 });
 
 test('Should test protected route with admin credentials.', t => {
@@ -73,10 +77,12 @@ test('Should test protected route with invalid access token.', t => {
     const opt = {
       url: `${app.address}/service/admin`,
       headers: {
-        Authorization: 'Bearer ' + token.replace(/(.+?\..+?\.).*/, '$1.Invalid')
+        Authorization: 'Bearer ' +
+            token.replace(/(.+?\..+?\.).*/, '$1.Invalid')
       }
     };
-    return t.shouldFail(axios(opt), 'Access denied', 'Response should be access denied for invalid access token');
+    return t.shouldFail(axios(opt), 'Access denied',
+      'Response should be access denied for invalid access token');
   });
 });
 
@@ -85,8 +91,10 @@ test('Should handle direct access grants.', t => {
   return axios.post(`${app.address}/service/grant`, auth)
     .then(response => {
       t.ok(response.data.id_token, 'Response should contain an id_token');
-      t.ok(response.data.access_token, 'Response should contain an access_token');
-      t.ok(response.data.refresh_token, 'Response should contain an refresh_token');
+      t.ok(response.data.access_token,
+        'Response should contain an access_token');
+      t.ok(response.data.refresh_token,
+        'Response should contain an refresh_token');
     })
     .catch(error => {
       t.fail(error.response.data);
@@ -101,9 +109,12 @@ test('Should store the grant.', t => {
     .then(cookie => {
       return axios.get(endpoint, { headers: { cookie } })
         .then(response => {
-          t.ok(response.data.id_token, 'Response should contain an id_token');
-          t.ok(response.data.access_token, 'Response should contain an access_token');
-          t.ok(response.data.refresh_token, 'Response should contain an refresh_token');
+          t.ok(response.data.id_token,
+            'Response should contain an id_token');
+          t.ok(response.data.access_token,
+            'Response should contain an access_token');
+          t.ok(response.data.refresh_token,
+            'Response should contain an refresh_token');
         });
     });
 });
@@ -144,17 +155,20 @@ test('Should not store grant on bearer request', t => {
 
           return axios(opt)
             .then(response => {
-              t.ok(response.data.id_token, 'Response should contain an id_token');
-              t.ok(response.data.access_token, 'Response should contain an access_token');
-              t.ok(response.data.refresh_token, 'Response should contain an refresh_token');
+              t.ok(response.data.id_token,
+                'Response should contain an id_token');
+              t.ok(response.data.access_token,
+                'Response should contain an access_token');
+              t.ok(response.data.refresh_token,
+                'Response should contain an refresh_token');
             });
         });
     });
 });
 
 test('teardown', t => {
-  return realmManager.then((realm) => {
-    app.destroy();
-    admin.destroy(realmName);
-  });
+  // return realmManager.then((realm) => {
+  //   app.destroy()
+  //   admin.destroy(realmName)
+  // })
 });

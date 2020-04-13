@@ -33,7 +33,9 @@ var kca = keycloakAdminClient(settings);
  */
 function createRealm (realmName) {
   var name = realmName || 'test-realm';
+  console.log('creating realm = ', name, parse(realmTemplate, name));
   return kca.then((client) => {
+    console.log('creating... by client...');
     return client.realms.create(parse(realmTemplate, name));
   }).catch((err) => {
     console.error('Failure: ', err);
@@ -57,6 +59,7 @@ function createClient (clientRep, realmName) {
     console.error(err);
   });
 }
+
 /**
  * Remove the realm based on the name provided
  * @param {object} realm - Realm name

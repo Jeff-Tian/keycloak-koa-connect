@@ -55,6 +55,7 @@
     "keycloak-admin-client": "github:bucharest-gold/keycloak-admin-client",
     "keycloak-request-token": "^0.1.0",
     "koa": "^2.7.0",
+    "koa-bodyparser": "^4.3.0",
     "koa-ejs": "^4.3.0",
     "koa-router": "^8.0.8",
     "koa-session": "^5.13.1",
@@ -62,11 +63,11 @@
     "nyc": "^14.1.1",
     "rsa-compat": "^1.9.4",
     "selenium-webdriver": "^3.6.0",
+    "semantic-release": "^17.0.4",
     "semistandard": "^13.0.1",
     "server-destroy": "^1.0.1",
     "tape": "^4.11.0",
-    "tape-catch": "^1.0.6",
-    "semantic-release": "^17.0.4"
+    "tape-catch": "^1.0.6"
   },
   "semistandard": {
     "ignore": [

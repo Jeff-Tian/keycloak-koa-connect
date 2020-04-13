@@ -47,7 +47,7 @@ function GrantManager (config) {
  *
  * The direct grant API must be enabled for the configured realm
  * for this method to work. This function ostensibly provides a
- * non-interactive, programatic way to login to a Keycloak realm.
+ * non-interactive, programmatic way to login to a Keycloak realm.
  *
  * This method can either accept a callback as the last parameter
  * or return a promise.
@@ -70,6 +70,9 @@ GrantManager.prototype.obtainDirectly = function obtainDirectly (
   };
   const handler = createHandler(this);
   const options = postOptions(this);
+
+  console.log('postOptions = ', options);
+
   return nodeify(fetch(this, handler, options, params), callback);
 };
 
